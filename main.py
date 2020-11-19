@@ -24,7 +24,7 @@ is_noun = lambda pos: pos[:2] == 'NN'
 for fold in folder :
     liste = []
    
-    if(i<15):
+    if(i<2):
         for root, dirs, files in os.walk("/mnt/c/Users/thoma/Desktop/mailfoo/"+fold+"/_sent_mail", topdown = False):
             for name in files:
                 liste.append(os.path.join(root, name))
@@ -62,7 +62,7 @@ rddReduced = sc.parallelize(reducedWord)
 wordRDDReduced = rddReduced.flatMap(lambda line: line.split(' '))
 wordsPairRDDReduced = wordRDDReduced.map(lambda a: (a,1))
 wordCountReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
-final = wordCountReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
 
-print(final)
+final = wordCountReduced.map(lambda x: (x[1], x[0])).sortByKey(False)
+final.saveAsTextFile("result")
 
