@@ -1,5 +1,6 @@
 import mailparser
 from pyspark import SparkContext
+import pandas as pd
 import string
 import re
 sc =SparkContext()
@@ -12,20 +13,20 @@ nltk.download('wordnet')
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 mailsBody = []
-
+import plotly.express as px
 from os import walk
 import os
 filesn = []
 
 #dossier contenant les utilisateurs
-folder = os.listdir("/mnt/c/Users/thoma/Desktop/mailfoo/")
+folder = os.listdir("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir")
 i = 1
 is_noun = lambda pos: pos[:2] == 'NN'
 for fold in folder :
     liste = []
    
     if(i<2):
-        for root, dirs, files in os.walk("/mnt/c/Users/thoma/Desktop/mailfoo/"+fold+"/_sent_mail", topdown = False):
+        for root, dirs, files in os.walk("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir/"+fold+"/_sent_mail", topdown = False):
             for name in files:
                 liste.append(os.path.join(root, name))
         
@@ -63,6 +64,8 @@ wordRDDReduced = rddReduced.flatMap(lambda line: line.split(' '))
 wordsPairRDDReduced = wordRDDReduced.map(lambda a: (a,1))
 wordCountReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
 
-final = wordCountReduced.map(lambda x: (x[1], x[0])).sortByKey(False)
-final.saveAsTextFile("result")
-
+final = wordCountReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
+#final.saveAsTextFile("result")
+df = pd.DataFrame(final,columns=['occurence','nom'])
+fig = px.bar(df, x='nom', y='occurence')
+fig.show()
