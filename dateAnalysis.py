@@ -13,6 +13,7 @@ nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 mailsDayHour = []
 mailsDate = []
+mailsDay= []
 mailsDayMonth = []
 mailsNounMonth = []
 from os import walk
@@ -22,6 +23,10 @@ filesn = []
 import plotly.express as px
 import pandas as pd
 
+bannedWord = ["cc","enron.com","http","re","draft","enronxg","subject","copi","@","aol.com",">"]
+
+dictNumericalDay = {0:"Lundi", 1:"Mardi", 2:"Mercredi", 3:"Jeudi", 4:"Vendredi", 5:"Samedi", 6:"Dimanche"}
+dictNumericalMonth = {"01":"Janvier", "02":"Février", "03":"Mars", "04":"Avril", "05":"Mai", "06":"Juin", "07":"Juillet", "08":"Aout", "09":"Septembre", "10":"Octobre", "11":"Novembre", "12":"Décembre"}
 
 #dossier contenant les utilisateurs
 folder = os.listdir("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir")
@@ -49,16 +54,27 @@ for fold in folder :
 
                 #GET MAIL DAY-HOUR
                 hour = date.strftime("%H")
-                mailsDayHour.append(str(date.weekday())+'-'+hour)
+                mailsDayHour.append((dictNumericalDay[date.weekday()],hour))
+
+                #GET MAIL BY DAY
+                mailsDay.append(dictNumericalDay[date.weekday()])
 
                 #GET MAIL DAY-MONTH
                 month = date.strftime("%m")
-                mailsDayMonth.append(str(date.weekday())+'-'+month)
+                #mailsDayMonth.append((dictNumericalDay[date.weekday()],dictNumericalMonth[str(month)]))
 
                 #GET NOUN-MONTH
                 pst = PorterStemmer()
-                for noun in nouns:
-                    mailsNounMonth.append((pst.stem(noun),month))
+
+                nouns_lower = [x.lower() for x in nouns]
+                difference = set(nouns_lower).symmetric_difference(set(bannedWord))
+                cleanedNouns =  []
+                for e in nouns_lower:
+                    if not (e in bannedWord):
+                        cleanedNouns.append(e)
+
+                for noun in cleanedNouns:
+                    mailsNounMonth.append((pst.stem(noun),dictNumericalMonth[str(month)]))
 
             except ValueError:
                 print("Oops!  That was no valid number.  Try again...")
@@ -68,7 +84,6 @@ for fold in folder :
 
 #print(mailsDate)
 #print(mailsNounMonth)
-
 
 
 #TO COMPUTE DATE
@@ -82,28 +97,43 @@ rdd = sc.parallelize(mailsDayHour)
 wordsPairRDDReduced = rdd.map(lambda a: (a,1))
 HourReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
 
-#TO COMPUTE DAY-MONTH
-rdd = sc.parallelize(mailsDayMonth)
+
+#TO COMPUTE DAY-HOUR
+rdd = sc.parallelize(mailsDay)
 wordsPairRDDReduced = rdd.map(lambda a: (a,1))
-DayMonthReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
+DayReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
+
+#TO COMPUTE DAY-MONTH
+"""rdd = sc.parallelize(mailsDayMonth)
+wordsPairRDDReduced = rdd.map(lambda a: (a,1))
+DayMonthReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)"""
 
 
 #TO COMPUTE NOUN-MONTH
 rdd = sc.parallelize(mailsNounMonth)
 wordsPairRDDReduced = rdd.map(lambda a: (a,1))
 NounMonthReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
-#ATTENTION IL FAUT FILTRER LES DONNEES ICI OU AVANT!!
-
-
-finalDate = DateReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
+finalDate = DateReduced.map(lambda x: (datetime.strptime(x[0],"%d/%m/%Y"),x[1])).sortByKey(False)
 finalHour = HourReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
-finalDayMonth = DayMonthReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
+finalDay = DayReduced.sortByKey(False)
+#finalDayMonth = DayMonthReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
 finalNounMonth = NounMonthReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
 
 #final.saveAsTextFile("result")
 print(finalDate)
+df = pd.DataFrame(finalDate.collect(),columns=['date','occurence'])
+figFinalDate = px.bar(df, y='occurence', x="date")
+figFinalDate.update_xaxes(rangeslider_visible=True)
+figFinalDate.show()
+
+
+df = pd.DataFrame(finalDay.collect(),columns=['day','occurence'])
+print(df)
+figFinalDay = px.bar(df, y='occurence', x="day")
+figFinalDay.show()
+
 print(finalHour)
-print(finalDayMonth)
+#print(finalDayMonth)
 print(finalNounMonth)
 
 
