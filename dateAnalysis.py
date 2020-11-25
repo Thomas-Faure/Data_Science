@@ -16,6 +16,7 @@ mailsDate = []
 mailsDay= []
 mailsDayMonth = []
 mailsNounMonth = []
+mailsMonth = []
 from os import walk
 import os
 from datetime import datetime
@@ -29,14 +30,14 @@ dictNumericalDay = {0:"Lundi", 1:"Mardi", 2:"Mercredi", 3:"Jeudi", 4:"Vendredi",
 dictNumericalMonth = {"01":"Janvier", "02":"Février", "03":"Mars", "04":"Avril", "05":"Mai", "06":"Juin", "07":"Juillet", "08":"Aout", "09":"Septembre", "10":"Octobre", "11":"Novembre", "12":"Décembre"}
 
 #dossier contenant les utilisateurs
-folder = os.listdir("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir")
+folder = os.listdir("/mnt/c/Users/thoma/Desktop/maildir")
 i = 1
 is_noun = lambda pos: pos[:2] == 'NN'
 for fold in folder :
     liste = []
    
-    if(i<6):
-        for root, dirs, files in os.walk("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir/"+fold+"/_sent_mail", topdown = False):
+    if(i<15):
+        for root, dirs, files in os.walk("/mnt/c/Users/thoma/Desktop/maildir/"+fold+"/_sent_mail", topdown = False):
             for name in files:
                 liste.append(os.path.join(root, name))
         for f in liste:
@@ -65,7 +66,9 @@ for fold in folder :
 
                 #GET NOUN-MONTH
                 pst = PorterStemmer()
-
+            
+               
+                mailsMonth.append(dictNumericalMonth[str(month)])
                 nouns_lower = [x.lower() for x in nouns]
                 difference = set(nouns_lower).symmetric_difference(set(bannedWord))
                 cleanedNouns =  []
@@ -74,6 +77,7 @@ for fold in folder :
                         cleanedNouns.append(e)
 
                 for noun in cleanedNouns:
+                 
                     mailsNounMonth.append((pst.stem(noun),dictNumericalMonth[str(month)]))
 
             except ValueError:
@@ -108,6 +112,11 @@ DayReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
 wordsPairRDDReduced = rdd.map(lambda a: (a,1))
 DayMonthReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)"""
 
+#TO COMPUTE MONTH
+rddMonth = sc.parallelize(mailsMonth)
+wordsPairRDDReducedMonth = rddMonth.map(lambda a: (a,1))
+MonthReduced = wordsPairRDDReducedMonth.reduceByKey(lambda a, b: a+b)
+
 
 #TO COMPUTE NOUN-MONTH
 rdd = sc.parallelize(mailsNounMonth)
@@ -115,7 +124,8 @@ wordsPairRDDReduced = rdd.map(lambda a: (a,1))
 NounMonthReduced = wordsPairRDDReduced.reduceByKey(lambda a, b: a+b)
 finalDate = DateReduced.map(lambda x: (datetime.strptime(x[0],"%d/%m/%Y"),x[1])).sortByKey(False)
 finalHour = HourReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
-finalDay = DayReduced.sortByKey(False)
+finalMonth =  MonthReduced.map(lambda x: (x[1], x[0])).sortByKey(False).map(lambda x: (x[1], x[0]))
+finalDay = DayReduced.map(lambda x: (x[1], x[0])).sortByKey(False).map(lambda x: (x[1], x[0]))
 #finalDayMonth = DayMonthReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
 finalNounMonth = NounMonthReduced.map(lambda x: (x[1], x[0])).sortByKey(False).take(20)
 
@@ -130,6 +140,11 @@ figFinalDate.show()
 df = pd.DataFrame(finalDay.collect(),columns=['day','occurence'])
 print(df)
 figFinalDay = px.bar(df, y='occurence', x="day")
+figFinalDay.show()
+
+df = pd.DataFrame(finalMonth.collect(),columns=['month','occurence'])
+print(df)
+figFinalDay = px.bar(df, y='occurence', x="month")
 figFinalDay.show()
 
 print(finalHour)
