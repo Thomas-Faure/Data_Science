@@ -17,7 +17,7 @@ import plotly.express as px
 from os import walk
 import os
 filesn = []
-
+bannedWord = ["cc","enron.com","http","re","draft","enronxg","subject","copi","@","aol.com"]
 #dossier contenant les utilisateurs
 folder = os.listdir("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir")
 i = 1
@@ -37,7 +37,15 @@ for fold in folder :
                 sentence = mailparser.parse_from_string(mail).body
                 pos_tagged_sent = nltk.pos_tag(nltk.tokenize.word_tokenize(sentence))
                 nouns = [tag[0] for tag in pos_tagged_sent if tag[1]=='NN']
-                mailsBody.append(nouns)
+
+                nouns_lower = [x.lower() for x in nouns]
+                difference = set(nouns_lower).symmetric_difference(set(bannedWord))
+                cleanedNouns =  []
+                for e in nouns_lower:
+                    if not (e in bannedWord):
+                        cleanedNouns.append(e)
+                mailsBody.append(cleanedNouns)
+                
             except ValueError:
                 print("Oops!  That was no valid number.  Try again...")
     
