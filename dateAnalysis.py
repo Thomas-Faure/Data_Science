@@ -30,14 +30,16 @@ dictNumericalDay = {0:"Lundi", 1:"Mardi", 2:"Mercredi", 3:"Jeudi", 4:"Vendredi",
 dictNumericalMonth = {"01":"Janvier", "02":"Février", "03":"Mars", "04":"Avril", "05":"Mai", "06":"Juin", "07":"Juillet", "08":"Aout", "09":"Septembre", "10":"Octobre", "11":"Novembre", "12":"Décembre"}
 
 #dossier contenant les utilisateurs
-folder = os.listdir("/mnt/c/Users/thoma/Desktop/maildir")
+# /mnt/c/Users/thoma/Desktop/maildir
+# /home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir
+folder = os.listdir("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir")
 i = 1
 is_noun = lambda pos: pos[:2] == 'NN'
 for fold in folder :
     liste = []
    
     if(i<15):
-        for root, dirs, files in os.walk("/mnt/c/Users/thoma/Desktop/maildir/"+fold+"/_sent_mail", topdown = False):
+        for root, dirs, files in os.walk("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir/"+fold+"/_sent_mail", topdown = False):
             for name in files:
                 liste.append(os.path.join(root, name))
         for f in liste:
