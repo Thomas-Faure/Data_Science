@@ -17,7 +17,7 @@ import plotly.express as px
 from os import walk
 import os
 filesn = []
-bannedWord = ["cc","enron.com","http","re","draft","enronxg","subject","copi","@","aol.com"]
+bannedWord = ["cc","enron.com","http","re","draft","enronxg","subject","copi","@","aol.com",">"]
 #dossier contenant les utilisateurs
 folder = os.listdir("/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir")
 i = 1
@@ -45,7 +45,7 @@ for fold in folder :
                     if not (e in bannedWord):
                         cleanedNouns.append(e)
                 mailsBody.append(cleanedNouns)
-                
+
             except ValueError:
                 print("Oops!  That was no valid number.  Try again...")
     
