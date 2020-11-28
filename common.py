@@ -33,6 +33,7 @@ def getFolders(numberOfFolder):
             for root, dirs, files in os.walk(getPath()+"/"+fold+"/_sent_mail", topdown = False):
                 for name in files:
                     liste.append(os.path.join(root, name))
+        i = i + 1
     return liste
 
 setConfig(path,bannedWords)
