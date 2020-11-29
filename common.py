@@ -30,7 +30,7 @@ def getFolders(numberOfFolder):
     folder = os.listdir(getPath())
     for fold in folder :
         if(i<numberOfFolder):
-            for root, dirs, files in os.walk(getPath()+"/"+fold+"/_sent_mail", topdown = False):
+            for root, dirs, files in os.walk(getPath()+"/"+fold+"/inbox", topdown = False):
                 for name in files:
                     liste.append(os.path.join(root, name))
         i = i + 1
