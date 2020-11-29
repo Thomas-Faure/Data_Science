@@ -1,4 +1,4 @@
-/home/guillaume/Documents/POLYTECH/IG5/DataScienceAvancée/enron_mail_20150507/maildir
+maildir
 cc,enron.com,http,re,draft,enronxg,subject,copi,@,aol.com,>
 
 
